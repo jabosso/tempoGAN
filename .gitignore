@@ -30,5 +30,11 @@
 *.exe
 *.out
 *.app
+
+# Computed data
 /scenes/manta
 /scenes/*.bin
+/build/*
+
+# Pycharm data
+/.idea/*
