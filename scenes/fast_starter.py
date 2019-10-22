@@ -39,10 +39,16 @@ if experiment_number == 2:
     params['--speed-x'] = 0.8
     params['--speed-y'] = 0.1
     params['--speed-z'] = 0.0
-    params['--turb-number'] = 2000
-    params['--pause-starting'] = ''
-    params['--res'] = 128
+    params['--turb-number'] = 1000
+    # params['--pause-starting'] = ''
+    params['--res'] = 64
+    params['--save-parts'] = ''
 
-    for i in range(4):
-        params['--scene'] = i
-        start(params, executable)
+    params['--scene'] = 4
+    start(params, executable)
+
+    startr_all = False
+    if startr_all:
+        for i in range(4):
+            params['--scene'] = i
+            start(params, executable)

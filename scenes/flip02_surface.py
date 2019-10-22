@@ -146,7 +146,7 @@ for t in range(250):
 
     # generate data for flip03_gen.py surface generation scene
     if args.save_parts:
-        pp.save('flipParts_%04d.uni' % t);
+        pp.save('flipParts_%04d.uni' % t)
 
     if 0 and (GUI):
-        gui.screenshot('flip02_%04d.png' % t);
+        gui.screenshot('flip02_%04d.png' % t)

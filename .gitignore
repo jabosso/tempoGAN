@@ -35,6 +35,14 @@
 /scenes/manta
 /scenes/*.bin
 /build/*
+/scenes/saved_*
+/tensorflow/data/*
 
 # Pycharm data
 /.idea/*
+
+# All python cache
+__pycache__
+
+# Bin files been modifies each computation
+waveletNoiseTile.bin

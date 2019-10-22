@@ -3,6 +3,8 @@
 
 from manta import *
 import argparse
+import os
+from scenes.scenes_utils import SessionSaver
 
 # unused: scale = 0.2
 
@@ -16,7 +18,7 @@ parser.add_argument("--speed-z", type=float, default=0.0,
 parser.add_argument("--show-pressure", action="store_true", default=False,
                     help="Save uni parts when using the script (default: False)")
 parser.add_argument("--scene", type=int, default=0,
-                    help="Select one of the scenes in N U [0,3] (default: 0)")
+                    help="Select one of the scenes in N U [0,4] (default: 0)")
 parser.add_argument("--turb-number", type=int, default=500,
                     help="Turbolence number in N+ (default: 500)")
 parser.add_argument("--pause-starting", action="store_true", default=False,
@@ -25,13 +27,19 @@ parser.add_argument("--gui", action="store_false", default=True,
                     help="Remove gui visualization (default: True)")
 parser.add_argument("--res", type=int, default=64,
                     help="Resolution of demo cube (default: 64)")
+parser.add_argument("--save-parts", action="store_true", default=False,
+                    help="Save uni parts when using the script (default: False)")
+parser.add_argument("--view-obstacle", action="store_true", default=False,
+                    help="Show obstacle in grid (default: False)")
 args = parser.parse_args()
 
+saver_paths = SessionSaver("turbolence")
+
 # solver params
-res = 64
+res = args.res
 gs = vec3(res, res / 2, res / 2)
 s = Solver(name='main', gridSize=gs)
-s.timestep = 0.5
+s.timestep = 0.5 if args.res <= 64 else 0.1
 timings = Timings()
 
 velInflow = vec3(args.speed_x, args.speed_y, args.speed_z)
@@ -59,8 +67,14 @@ turb = s.create(TurbulenceParticleSystem, noise=noise)
 flags.initDomain()
 flags.fillGrid()
 
+# particle inflow
+box = Box(parent=s, center=gs * vec3(0.05, 0.43, 0.6), size=gs * vec3(0.02, 0.005, 0.7))
+box2 = None
+
 scene = args.scene
 if scene == 0:
+    # Secondary particle box inflow
+    box2 = Box(parent=s, center=gs * vec3(0.05, 0.23, 0.6), size=gs * vec3(0.02, 0.005, 0.7))
     # obstacle grid, 4 rocks on right, 4 rocks on left
     for i in range(4):
         for j in range(5):
@@ -81,18 +95,21 @@ if scene == 2:
             # Box(parent=s, center=gs * vec3(0.05, 0.43, 0.6), size=gs * vec3(0.02, 0.005, 0.07))
             obs.applyToGrid(grid=flags, value=FlagObstacle)
 if scene == 3:
-    # one big wal obstacle
+    # one big wall obstacle
     obs = Box(parent=s, center=gs * vec3(0.5, 0.5, 0.5), size=gs * vec3(0.08, 0.3, 0.3))
-    # Box(parent=s, center=gs * vec3(0.05, 0.43, 0.6), size=gs * vec3(0.02, 0.005, 0.07))
+    obs.applyToGrid(grid=flags, value=FlagObstacle)
+if scene == 4:
+    # Change particle box inflow
+    box = Box(parent=s, center=gs * vec3(0.1, 0.45, 0.5), size=gs * vec3(0.08, 0.08, 0.08))
+    # one big sphere centered obstacle
+    obs = Sphere(parent=s, center=gs * vec3(.5, .5, .5), radius=res * 0.1)
     obs.applyToGrid(grid=flags, value=FlagObstacle)
 
 sdfgrad = obstacleGradient(flags)
 sdf = obstacleLevelset(flags)
 bgr = s.create(Mesh)
-sdf.createMesh(bgr)
-
-# particle inflow
-box = Box(parent=s, center=gs * vec3(0.05, 0.43, 0.6), size=gs * vec3(0.02, 0.005, 0.7))
+if args.view_obstacle:
+    sdf.createMesh(bgr)
 
 L0 = 0.01
 mult = 0.1
@@ -116,13 +133,15 @@ KEpsilonBcs(flags=flags, k=k, eps=eps, intensity=intensity, nu=nu, fillArea=True
 
 # main loop
 for t in range(10000):
-    mantaMsg('\nFrame %i, simulation time %f' % (s.frame, s.timeTotal))
+    # mantaMsg('\nFrame %i, simulation time %f' % (s.frame, s.timeTotal))
     if (args.gui):
         mult = sliderMult.get()
         # unused: K0 = sliderL0.get()
         enableDiffuse = checkDiff.get()
         prodMult = sliderProd.get()
 
+    if box2 is not None:
+        turb.seed(box2, args.turb_number)
     turb.seed(box, args.turb_number)
     turb.advectInGrid(flags=flags, vel=vel, integrationMode=IntRK4)
     turb.synthesize(flags=flags, octaves=1, k=k, switchLength=5, L0=L0, scale=mult, inflowBias=velInflow)
@@ -149,3 +168,10 @@ for t in range(10000):
 
     timings.display()
     s.step()
+
+    # generate data for flip03_gen.py surface generation scene
+    if args.save_parts:
+        vel.save(saver_paths.getUniFolder() + ('flipParts_%04d.uni' % t))
+
+    if args.save_parts and args.gui:
+        gui.screenshot(saver_paths.getScreenFolder() + ('flip02_%04d.png' % t))
