@@ -1,6 +1,6 @@
 #
 # Simple flip with level set and basic resampling
-# 
+#
 from manta import *
 import argparse
 
@@ -32,7 +32,7 @@ minParticles = pow(2, dim)
 
 # save particles for separate surface generation pass? --> args.save_parts
 
-# size of particles 
+# size of particles
 radiusFactor = 1.0
 
 # prepare grids and particles
@@ -146,7 +146,7 @@ for t in range(250):
 
     # generate data for flip03_gen.py surface generation scene
     if args.save_parts:
-        pp.save('flipParts_%04d.uni' % t)
+        pp.save('flipParts_%04d.uni' % t);
 
     if 0 and (GUI):
-        gui.screenshot('flip02_%04d.png' % t)
+        gui.screenshot('flip02_%04d.png' % t);

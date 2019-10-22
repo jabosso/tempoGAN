@@ -1,6 +1,6 @@
 import os
 
-experiment_number = 2
+experiment_number = 5
 
 start_all_defaults = False
 
@@ -23,9 +23,8 @@ if experiment_number == 1:
     executable = "flip02_surface.py"
     print(executable)
     params = {}
-    params['--ball-height'] = '0.8'
-    params['--ball-radius'] = '0.1'
-    params['--ball-speed'] = '5'
+    params['--ball-radius'] = .1
+    params['--ball-speed'] = .3
     params['--res'] = '64'
     params['--pause-starting'] = ''
 
@@ -40,15 +39,64 @@ if experiment_number == 2:
     params['--speed-y'] = 0.1
     params['--speed-z'] = 0.0
     params['--turb-number'] = 1000
-    # params['--pause-starting'] = ''
+    params['--pause-starting'] = ''
     params['--res'] = 64
     params['--save-parts'] = ''
 
     params['--scene'] = 4
-    start(params, executable)
 
-    startr_all = False
+    startr_all = True
     if startr_all:
         for i in range(4):
             params['--scene'] = i
             start(params, executable)
+    else:
+        start(params, executable)
+
+# Number 3
+if experiment_number == 3:
+    executable = "apic01_simple.py"
+    print(executable)
+    params = {}
+    params['--gravity-x'] = 0.000
+    params['--gravity-y'] = 0.002
+    params['--gravity-z'] = 0.0
+    params['--box-altitude-top'] = 0.9
+    params['--box-height'] = .3
+    params['--box-width'] = .3
+    params['--res'] = '64'
+    params['--particle-number'] = 10
+    params['--pause-starting'] = ''
+    params['--save-parts'] = ''
+    params['--save-each'] = 15
+
+    start(params, executable)
+
+# Number 4
+if experiment_number == 4:
+    executable = "fire.py"
+    print(executable)
+    params = {}
+    params['--gravity-x'] = 0.0
+    params['--gravity-y'] = 0.008
+    params['--gravity-z'] = 0.0
+    params['--box-height'] = .92
+    params['--box-dim'] = .3
+    params['--res'] = '64'
+    params['--particle-number'] = 10
+    params['--pause-starting'] = ''
+
+    start(params, executable)
+
+# Number 5 Chair
+if experiment_number == 5:
+    executable = "flip02_chair.py"
+    print(executable)
+    params = {}
+    params['--ball-radius'] = .1
+    params['--ball-speed'] = .3
+    params['--res'] = '64'
+    params['--pause-starting'] = ''
+
+    start(params, executable)
+
