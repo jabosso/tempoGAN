@@ -4,7 +4,7 @@
 #
 from manta import *
 import argparse
-from scenes.scenes_utils import SessionSaver
+from scenes_utils import SessionSaver
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--box-altitude-top", type=float, default=0.72,

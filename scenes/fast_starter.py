@@ -1,6 +1,6 @@
 import os
 
-experiment_number = 5
+experiment_number = 3
 
 start_all_defaults = False
 
