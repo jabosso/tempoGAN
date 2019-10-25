@@ -93,7 +93,7 @@ sdf.createMesh(bgr)
 
 # particle inflow
 box = Box(parent=s, center=gs * vec3(0.05, 0.43, 0.6), size=gs * vec3(0.02, 0.005, 0.7))
-
+#box1 = Box(parent=s, center=gs * vec3(0.05, 0.80, 0.2), size=gs * vec3(0.02, 0.005, 0.7))
 L0 = 0.01
 mult = 0.1
 intensity = 0.1
@@ -124,6 +124,7 @@ for t in range(10000):
         prodMult = sliderProd.get()
 
     turb.seed(box, args.turb_number)
+    #turb.seed(box1,args.turb_number)
     turb.advectInGrid(flags=flags, vel=vel, integrationMode=IntRK4)
     turb.synthesize(flags=flags, octaves=1, k=k, switchLength=5, L0=L0, scale=mult, inflowBias=velInflow)
     turb.projectOutside(sdfgrad)
