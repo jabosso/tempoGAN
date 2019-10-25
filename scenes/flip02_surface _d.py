@@ -1,30 +1,28 @@
 #
 # Simple flip with level set and basic resampling
-#
+# 
 from manta import *
 import argparse
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--ball-speed", type=float, default=1,
                     help="speed of the ball beign dropped in R+ (default: 1)")
-parser.add_argument("--ball-height", type=float, default=0.8,
+parser.add_argument("--ball-height", type=float, default=0.5,
                     help="height of the ball beign dropped in [0,1] (default: 0.5)")
-parser.add_argument("--ball-radius", type=float, default=0.07,
+parser.add_argument("--ball-radius", type=float, default=0.1,
                     help="radius of the ball beign dropped in [0,1] (default: 0.1)")
 parser.add_argument("--save-parts", action="store_true", default=False,
                     help="Save uni parts when using the script (default: False)")
-parser.add_argument("--pause-starting", action="store_true", default=True,
+parser.add_argument("--pause-starting", action="store_true", default=False,
                     help="Put in pause before starting the execution (default: False)")
 parser.add_argument("--res", type=int, default=64,
                     help="Resolution of demo cube (default: 64)")
-#parser.add_argument("")                    
 args = parser.parse_args()
 
 # solver params
 dim = 3
 res = args.res
-#res = 32
-#res = 128
+# res = 128
 gs = vec3(res, res, res)
 if (dim == 2):
     gs.z = 1
@@ -34,7 +32,7 @@ minParticles = pow(2, dim)
 
 # save particles for separate surface generation pass? --> args.save_parts
 
-# size of particles
+# size of particles 
 radiusFactor = 1.0
 
 # prepare grids and particles
@@ -72,37 +70,14 @@ if setup == 0:
 elif setup == 1:
     # falling drop
     fluidBasin = Box(parent=s, p0=gs * vec3(0, 0, 0), p1=gs * vec3(1.0, 0.1, 1.0))  # basin
-    dropCenter = vec3(0.8, args.ball_height, 0.5)
+    dropCenter = vec3(0.5, args.ball_height, 0.5)
     dropRadius = args.ball_radius
     fluidDrop = Sphere(parent=s, center=gs * dropCenter, radius=res * dropRadius)
     fluidVel = Sphere(parent=s, center=gs * dropCenter, radius=res * (dropRadius + 0.05))
     fluidSetVel = vec3(0, -args.ball_speed, 0)
-    #------------------------------------------------------------------------------------------
-   # phi = fluidBasin.computeLevelset()
-  # phi.join(fluidDrop.computeLevelset())
-#-----------------------------------------------------------------------------------------------    
-    dropCenter1 = vec3(0.2, args.ball_height, 0.5)    
-    fluidDrop1 = Sphere(parent=s, center=gs * dropCenter1, radius=res * dropRadius)    
-    fluidSetVel = vec3(0, -args.ball_speed, 0) 
-    sphere1 = Sphere(parent=s, center=gs*vec3(0.3,0.3,0.5), radius=res*0.2)
     phi = fluidBasin.computeLevelset()
-    #-----------------------------------------
-
-       
-
-    sdfgrad = obstacleGradient(flags)
-    sdf = obstacleLevelset(flags)
-    bgr = s.create(Mesh)
-    sdf.createMesh(bgr)
-
-    sphere1.applyToGrid(grid=flags, value=FlagObstacle)
-	#flags.updateFromLevelset(phi)
-    #phi.subtract( phiObs )
-    #sampleLevelsetWithParticles( phi=phi, flags=flags)
-    #--------------------------------------------
-    phi.join(fluidDrop1.computeLevelset())   
     phi.join(fluidDrop.computeLevelset())
-#------------------------------------------------------------------------------------------------    
+
 flags.updateFromLevelset(phi)
 # setOpenBound(flags,bWidth,'xX',FlagOutflow|FlagEmpty)
 sampleLevelsetWithParticles(phi=phi, flags=flags, parts=pp, discretization=2, randomness=0.05)
