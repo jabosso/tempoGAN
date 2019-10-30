@@ -22,7 +22,7 @@ velOld = s.create(MACGrid)
 pressure = s.create(RealGrid)
 tmpVec3 = s.create(VecGrid)
 tstGrid = s.create(RealGrid)
-
+density = s.create(RealGrid)
 
 pp = s.create(BasicParticleSystem)
 pVel = pp.create(PdataVec3)
@@ -36,7 +36,8 @@ bWidth = 1
 #fluidVel = 0
 flags.initDomain(boundaryWidth=bWidth)
 #--------------------------------------------------------------------------
-fluidDrop = Box(parent=s, p0=gs * vec3(0.0, 0.6, 0.05), p1=gs * vec3(0.4,0.7, 0.95))
+fluidDrop = Box(parent=s, p0=gs * vec3(0, 0.1, 0), p1=gs * vec3(0.35,1, 1))
+
 fluidVel = Box(parent=s, p0=gs * vec3(0.50, 0.70, 0.18), p1=gs * vec3(0.80, 0.9, 0.4))
 fluidSetVel = vec3(0, -1, 0)
 
@@ -49,7 +50,14 @@ phi = fluidBasin.computeLevelset()
 phi.join(fluidDrop.computeLevelset())
 #--------------------------------------------------------------------------
 obstacle1 = Box(parent=s, p0=gs * vec3(0, 0, 0), p1=gs * vec3(0.4, 0.6, 1.0))
+obstacle2 = Box(parent=s, p0=gs * vec3(0.35, 0, 0), p1=gs * vec3(0.4, 1, 0.4))
+obstacle3 = Box(parent=s, p0=gs * vec3(0.35, 0, 0.6), p1=gs * vec3(0.4, 1, 1))
+obstacle4 = Box(parent=s, p0=gs * vec3(0.35, 0.65, 0), p1=gs * vec3(0.4, 1, 1))
 obstacle1.applyToGrid(grid=flags, value=FlagObstacle)
+obstacle2.applyToGrid(grid=flags, value=FlagObstacle)
+obstacle3.applyToGrid(grid=flags, value=FlagObstacle)
+obstacle4.applyToGrid(grid=flags, value=FlagObstacle)
+
 
 sdfgrad = obstacleGradient(flags)
 sdf = obstacleLevelset(flags)
@@ -65,7 +73,7 @@ fluidVel.applyToGrid(grid=vel, value=fluidSetVel)
 mapGridToPartsVec3(source=vel, parts=pp, target=pVel)
 testInitGridWithPos(tstGrid)
 pTest.setConst(0.1)
-
+phi2 = phi
 
 #this is to show the window with simulation
 if 1 and (GUI):
@@ -77,6 +85,7 @@ gui.pause()
 for t in range(2050):
     mantaMsg('\nFrame %i, simulation time %f' % (s.frame, s.timeTotal))
     
+      
     pp.advectInGrid(flags=flags, vel=vel, integrationMode=IntRK4, deleteInObstacle=False)    
     mapPartsToMAC(vel=vel, flags=flags, velOld=velOld, parts=pp, partVel=pVel, weight=tmpVec3)
     extrapolateMACFromWeight(vel=vel, distance=2, weight=tmpVec3)  # note, tmpVec3 could be free'd now...

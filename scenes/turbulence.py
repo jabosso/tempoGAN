@@ -4,7 +4,7 @@
 from manta import *
 import argparse
 import os
-from scenes.scenes_utils import SessionSaver
+#from scenes.scenes_utils import SessionSaver
 
 # unused: scale = 0.2
 
