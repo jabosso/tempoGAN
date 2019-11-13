@@ -1,6 +1,6 @@
 import os
 
-experiment_number = 3
+experiment_number = 7
 
 start_all_defaults = False
 
@@ -58,14 +58,14 @@ if experiment_number == 3:
     executable = "apic01_simple.py"
     print(executable)
     params = {}
-    params['--gravity-x'] = 0.000
-    params['--gravity-y'] = 0.002
+    params['--gravity-x'] = 0.001
+    params['--gravity-y'] = 0.003
     params['--gravity-z'] = 0.0
     params['--box-altitude-top'] = 0.9
     params['--box-height'] = .3
     params['--box-width'] = .3
     params['--res'] = '64'
-    params['--particle-number'] = 10
+    params['--particle-number'] = 15
     params['--pause-starting'] = ''
     params['--save-parts'] = ''
     params['--save-each'] = 15
@@ -97,6 +97,20 @@ if experiment_number == 5:
     params['--ball-speed'] = .3
     params['--res'] = '64'
     params['--pause-starting'] = ''
+    params['--partic-rad'] = 0.9
 
     start(params, executable)
 
+# Number 6 Another test
+if experiment_number == 6:
+    executable = "guiding_2d.py"
+    print(executable)
+    params = {}
+    start(params, executable)
+
+# Number 6 Another test
+if experiment_number == 7:
+    executable = "newscene.py"
+    print(executable)
+    params = {}
+    start(params, executable)

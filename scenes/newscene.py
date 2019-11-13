@@ -1,19 +1,23 @@
 from manta import *
+from scenes_utils import SessionSaver
+
 dim = 3
 res = 64
-gs =vec3(res*2, res, res)
-#-------------- Create the solver for the scene ----------------------
-s = Solver(name='main', gridSize=gs, dim= dim)
+gs = vec3(res * 2, res, res)
+# -------------- Create the solver for the scene ----------------------
+s = Solver(name='main', gridSize=gs, dim=dim)
 s.timestep = 1.0
 
-minParticles = pow(2, dim)
+minParticles = pow(2, int(dim / 2.0))
 radiusFactor = 0.8
 
 flags = s.create(FlagGrid)
-#------------------------------------------------------------
+saver_paths = SessionSaver("newscene_simple")
+save_parts = True
+# ------------------------------------------------------------
 
-#------------------------initialize my scene geometry-------------------
-flags.initDomain() #create an empty box
+# ------------------------initialize my scene geometry-------------------
+flags.initDomain()  # create an empty box
 flags.fillGrid()
 phi = s.create(LevelsetGrid)
 
@@ -33,22 +37,21 @@ pindex = s.create(ParticleIndexSystem)
 gpi = s.create(IntGrid)
 
 bWidth = 1
-#fluidVel = 0
+# fluidVel = 0
 flags.initDomain(boundaryWidth=bWidth)
-#--------------------------------------------------------------------------
-fluidDrop = Box(parent=s, p0=gs * vec3(0, 0.1, 0), p1=gs * vec3(0.35,1, 1))
+# --------------------------------------------------------------------------
+fluidDrop = Box(parent=s, p0=gs * vec3(0, 0.1, 0), p1=gs * vec3(0.35, 1, 1))
 
 fluidVel = Box(parent=s, p0=gs * vec3(0.50, 0.70, 0.18), p1=gs * vec3(0.80, 0.9, 0.4))
 fluidSetVel = vec3(0, -1, 0)
 
-
-#--------------------------------------------------------------------------
+# --------------------------------------------------------------------------
 fluidBasin = Box(parent=s, p0=gs * vec3(0, 0, 0), p1=gs * vec3(1.0, 0.1, 1.0))
 
 phi = fluidBasin.computeLevelset()
-#-----------------
+# -----------------
 phi.join(fluidDrop.computeLevelset())
-#--------------------------------------------------------------------------
+# --------------------------------------------------------------------------
 obstacle1 = Box(parent=s, p0=gs * vec3(0, 0, 0), p1=gs * vec3(0.4, 0.6, 1.0))
 obstacle2 = Box(parent=s, p0=gs * vec3(0.35, 0, 0), p1=gs * vec3(0.4, 1, 0.4))
 obstacle3 = Box(parent=s, p0=gs * vec3(0.35, 0, 0.6), p1=gs * vec3(0.4, 1, 1))
@@ -58,12 +61,11 @@ obstacle2.applyToGrid(grid=flags, value=FlagObstacle)
 obstacle3.applyToGrid(grid=flags, value=FlagObstacle)
 obstacle4.applyToGrid(grid=flags, value=FlagObstacle)
 
-
 sdfgrad = obstacleGradient(flags)
 sdf = obstacleLevelset(flags)
 bgr = s.create(Mesh)
 sdf.createMesh(bgr)
-#------------------
+# ------------------
 
 flags.updateFromLevelset(phi)
 
@@ -75,23 +77,22 @@ testInitGridWithPos(tstGrid)
 pTest.setConst(0.1)
 phi2 = phi
 
-#this is to show the window with simulation
+# this is to show the window with simulation
 if 1 and (GUI):
     gui = Gui()
 gui.setBackgroundMesh(bgr)
 gui.show()
-gui.pause()    
-#main loop
-for t in range(2050):
+gui.pause()
+# main loop
+for t in range(200):
     mantaMsg('\nFrame %i, simulation time %f' % (s.frame, s.timeTotal))
-    
-      
-    pp.advectInGrid(flags=flags, vel=vel, integrationMode=IntRK4, deleteInObstacle=False)    
+
+    pp.advectInGrid(flags=flags, vel=vel, integrationMode=IntRK4, deleteInObstacle=False)
     mapPartsToMAC(vel=vel, flags=flags, velOld=velOld, parts=pp, partVel=pVel, weight=tmpVec3)
     extrapolateMACFromWeight(vel=vel, distance=2, weight=tmpVec3)  # note, tmpVec3 could be free'd now...
     markFluidCells(parts=pp, flags=flags)
 
-    extrapolateLsSimple(phi=phi, distance=4, inside=True);
+    extrapolateLsSimple(phi=phi, distance=4, inside=True)
 
     gridParticleIndex(parts=pp, flags=flags, indexSys=pindex, index=gpi)
     unionParticleLevelset(pp, pindex, flags, gpi, phi, radiusFactor)
@@ -102,14 +103,17 @@ for t in range(2050):
     solvePressure(flags=flags, vel=vel, pressure=pressure, phi=phi)
     setWallBcs(flags=flags, vel=vel)
     pVel.setSource(vel, isMAC=True)
-    pTest.setSource(tstGrid);
+    pTest.setSource(tstGrid)
     adjustNumber(parts=pp, vel=vel, flags=flags, minParticles=1 * minParticles, maxParticles=2 * minParticles,
-                phi=phi,
-                radiusFactor=radiusFactor)
+                 phi=phi,
+                 radiusFactor=radiusFactor)
     extrapolateMACSimple(flags=flags, vel=vel)
 
     flipVelocityUpdate(vel=vel, velOld=velOld, flags=flags, parts=pp, partVel=pVel, flipRatio=0.97)
     if (dim == 3):
         phi.createMesh(mesh)
+
+    if save_parts:
+        pp.save(saver_paths.getUniFolder() + ('newscene_screen_%04d.uni' % t))
 
     s.step()

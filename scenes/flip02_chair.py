@@ -15,6 +15,8 @@ parser.add_argument("--pause-starting", action="store_true", default=False,
                     help="Put in pause before starting the execution (default: False)")
 parser.add_argument("--res", type=int, default=64,
                     help="Resolution of demo cube (default: 64)")
+parser.add_argument("--partic-rad", type=float, default=2.0,
+                    help="Size of a particle in R+ (default: 2.0)")
 args = parser.parse_args()
 
 # solver params
@@ -30,7 +32,7 @@ minParticles = pow(2, dim)
 # save particles for separate surface generation pass? --> args.save_parts
 
 # size of particles 
-radiusFactor = 2.0
+radiusFactor = args.partic_rad
 
 # prepare grids and particles
 flags = s.create(FlagGrid)
@@ -169,7 +171,7 @@ elif setup == 1:
 
         # set source grids for resampling, used in adjustNumber!
         pVel.setSource(vel, isMAC=True)
-        pTest.setSource(tstGrid);
+        pTest.setSource(tstGrid)
         adjustNumber(parts=pp, vel=vel, flags=flags, minParticles=1 * minParticles, maxParticles=2 * minParticles,
                      phi=phi,
                      radiusFactor=radiusFactor)
