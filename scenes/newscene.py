@@ -1,5 +1,11 @@
 from manta import *
 from scenes_utils import SessionSaver
+import numpy as np
+
+saver_paths = SessionSaver("newscene_simple")
+save_parts = False
+save_for_tempogan = True
+use_gui = False
 
 dim = 3
 res = 64
@@ -11,9 +17,19 @@ s.timestep = 1.0
 minParticles = pow(2, int(dim / 2.0))
 radiusFactor = 0.8
 
+# how much to reduce target sim size
+targetFac = 0.25
+target_gs = vec3(targetFac * gs.x, targetFac * gs.y, targetFac * gs.z)
+if dim == 2:
+    target_gs.z = 1  # 2D
+
+if save_for_tempogan:
+    arR = np.zeros([int(gs.z), int(gs.y), int(gs.x), 1])
+    arV = np.zeros([int(gs.z), int(gs.y), int(gs.x), 3])
+    target_arR = np.zeros([int(target_gs.z), int(target_gs.y), int(target_gs.x), 1])
+    target_arV = np.zeros([int(target_gs.z), int(target_gs.y), int(target_gs.x), 3])
+
 flags = s.create(FlagGrid)
-saver_paths = SessionSaver("newscene_simple")
-save_parts = True
 # ------------------------------------------------------------
 
 # ------------------------initialize my scene geometry-------------------
@@ -78,11 +94,11 @@ pTest.setConst(0.1)
 phi2 = phi
 
 # this is to show the window with simulation
-if 1 and (GUI):
+if use_gui:
     gui = Gui()
-gui.setBackgroundMesh(bgr)
-gui.show()
-gui.pause()
+    gui.setBackgroundMesh(bgr)
+    gui.show()
+    gui.pause()
 # main loop
 for t in range(200):
     mantaMsg('\nFrame %i, simulation time %f' % (s.frame, s.timeTotal))
@@ -114,6 +130,25 @@ for t in range(200):
         phi.createMesh(mesh)
 
     if save_parts:
-        pp.save(saver_paths.getUniFolder() + ('newscene_screen_%04d.uni' % t))
+        pp.save(saver_paths.getUniFolder() + ('density_low_%04d.uni' % t))
+    # Questo è il codice per salvare preso dagli altri progetti
+    if save_for_tempogan:
+        simPath = saver_paths.getUniFolder()
+        tf = t / 2
+        print("Writing NPZs for frame %d" % tf)
+        print("target_arR shape: ")
+        print(target_arR.shape)
+        print("density: ")
+        print(density)
+        print()
+        # Ho dei problemi in copy per dimensioni degli array
+        copyGridToArrayReal(target=target_arR, source=density)
+        np.savez_compressed(simPath + 'density_low_%04d.npz' % (tf), target_arR)
+        copyGridToArrayVec3(target=target_arV, source=vel)
+        np.savez_compressed(simPath + 'velocity_low_%04d.npz' % (tf), target_arV)
+        #copyGridToArrayReal(target=arR, source=density)
+        #np.savez_compressed(simPath + 'density_high_%04d.npz' % (tf), arR)
+        #copyGridToArrayVec3(target=arV, source=vel)
+        #np.savez_compressed(simPath + 'velocity_high_%04d.npz' % (tf), arV)
 
     s.step()
