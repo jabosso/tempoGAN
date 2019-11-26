@@ -9,7 +9,7 @@ use_gui = False
 
 dim = 3
 res = 64
-gs = vec3(res * 2, res, res)
+gs = vec3(res, res, res)
 # -------------- Create the solver for the scene ----------------------
 s = Solver(name='main', gridSize=gs, dim=dim)
 s.timestep = 1.0
@@ -20,14 +20,22 @@ radiusFactor = 0.8
 # how much to reduce target sim size
 targetFac = 0.25
 target_gs = vec3(targetFac * gs.x, targetFac * gs.y, targetFac * gs.z)
-if dim == 2:
-    target_gs.z = 1  # 2D
+#if dim == 2:
+#    target_gs.z = 1  # 2D
 
 if save_for_tempogan:
     arR = np.zeros([int(gs.z), int(gs.y), int(gs.x), 1])
     arV = np.zeros([int(gs.z), int(gs.y), int(gs.x), 3])
     target_arR = np.zeros([int(target_gs.z), int(target_gs.y), int(target_gs.x), 1])
     target_arV = np.zeros([int(target_gs.z), int(target_gs.y), int(target_gs.x), 3])
+    print("arR shape")
+    print(arR.shape)
+    print("arV shape")
+    print(arV.shape)
+    print("target_arR shape")
+    print(target_arR.shape)
+    print("target_arV shape")
+    print(target_arV.shape)
 
 flags = s.create(FlagGrid)
 # ------------------------------------------------------------
@@ -129,26 +137,22 @@ for t in range(200):
     if (dim == 3):
         phi.createMesh(mesh)
 
-    if save_parts:
-        pp.save(saver_paths.getUniFolder() + ('density_low_%04d.uni' % t))
+    #if save_parts:
+    #    pp.save(saver_paths.getUniFolder() + ('density_low_%04d.uni' % t))
+
     # Questo è il codice per salvare preso dagli altri progetti
     if save_for_tempogan:
         simPath = saver_paths.getUniFolder()
-        tf = t / 2
-        print("Writing NPZs for frame %d" % tf)
-        print("target_arR shape: ")
-        print(target_arR.shape)
-        print("density: ")
-        print(density)
-        print()
-        # Ho dei problemi in copy per dimensioni degli array
-        copyGridToArrayReal(target=target_arR, source=density)
-        np.savez_compressed(simPath + 'density_low_%04d.npz' % (tf), target_arR)
-        copyGridToArrayVec3(target=target_arV, source=vel)
-        np.savez_compressed(simPath + 'velocity_low_%04d.npz' % (tf), target_arV)
-        #copyGridToArrayReal(target=arR, source=density)
-        #np.savez_compressed(simPath + 'density_high_%04d.npz' % (tf), arR)
-        #copyGridToArrayVec3(target=arV, source=vel)
-        #np.savez_compressed(simPath + 'velocity_high_%04d.npz' % (tf), arV)
+        #Taken from sim_3006
+        frameNr = t / 2
+        framedir = "frame_%04d" % frameNr
+        # os.mkdir( outputpath + framedir )
+        outputpath=simPath
+        #computeVorticity(vel=vel, vorticity=flags, norm=tstGrid)  # vorticity
+        flags.save('%s/vorticity_low_%04d.uni' % (outputpath, frameNr))
+        vel.save("%s/velocity_low_%04d.uni" % (outputpath, frameNr))
+        density.save("%s/density_low_%04d.uni" % (outputpath, frameNr))
+        density.save("%s/density_high_%04d.uni" % (outputpath, frameNr))
+
 
     s.step()
