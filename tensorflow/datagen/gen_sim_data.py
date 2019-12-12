@@ -26,7 +26,7 @@ simNo    = 1000  # start ID
 showGui  = 1
 basePath = '../data/'
 npSeedstr   = "-1"
-dim         = 2 
+dim         = 2
 
 # Solver params  
 res         = 64

@@ -4,7 +4,7 @@ import os
 class SessionSaver(object):
 
     def __init__(self, basepath):
-        self.base_path = "saved_" + basepath
+        self.base_path = basepath
         self.uni_folder = self.base_path + '/' + 'uni'
         self.screen_folder = self.base_path + '/' + 'screen'
         self.SessionNumber = 0

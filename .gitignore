@@ -37,6 +37,8 @@
 /build/*
 /scenes/saved_*
 /tensorflow/data/*
+/tensorflow/2ddata_sim
+/tesorflow/2ddata_sim/*
 
 # Pycharm data
 /.idea/*

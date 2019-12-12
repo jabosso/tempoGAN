@@ -2,10 +2,11 @@ from manta import *
 from scenes_utils import SessionSaver
 import numpy as np
 
-saver_paths = SessionSaver("newscene_simple")
+saver_paths = SessionSaver("../tensorflow/2ddata_sim/newscene_sim_1000")
 save_parts = False
 save_for_tempogan = True
 use_gui = False
+frames = 200
 
 dim = 3
 res = 64
@@ -20,7 +21,7 @@ radiusFactor = 0.8
 # how much to reduce target sim size
 targetFac = 0.25
 target_gs = vec3(targetFac * gs.x, targetFac * gs.y, targetFac * gs.z)
-#if dim == 2:
+# if dim == 2:
 #    target_gs.z = 1  # 2D
 
 if save_for_tempogan:
@@ -40,6 +41,7 @@ if save_for_tempogan:
 flags = s.create(FlagGrid)
 # ------------------------------------------------------------
 
+# target grid
 # ------------------------initialize my scene geometry-------------------
 flags.initDomain()  # create an empty box
 flags.fillGrid()
@@ -48,7 +50,8 @@ phi = s.create(LevelsetGrid)
 vel = s.create(MACGrid)
 velOld = s.create(MACGrid)
 pressure = s.create(RealGrid)
-tmpVec3 = s.create(VecGrid)
+# tmpVec3 = s.create(VecGrid)
+tmpVec3 = s.create(Vec3Grid)
 tstGrid = s.create(RealGrid)
 density = s.create(RealGrid)
 
@@ -59,6 +62,26 @@ mesh = s.create(Mesh)
 
 pindex = s.create(ParticleIndexSystem)
 gpi = s.create(IntGrid)
+
+# Bigger grid: normal one
+setupFactor = 3.0
+mainDt = 0.5
+gs_res = vec3(setupFactor * res, setupFactor * res, setupFactor * res)
+sm = Solver(name='main', gridSize=gs, dim=dim)
+sm.timestep = 1.0
+dummy = s.create(MACGrid)
+blurden = sm.create(RealGrid)
+blurvel = sm.create(MACGrid)
+vel_2 = s.create(MACGrid)
+flags_2 = s.create(FlagGrid)
+density_2 = s.create(RealGrid)
+pressure_2 = s.create(RealGrid)
+vorticity_2 = s.create(Vec3Grid)  # vorticity
+norm_2 = s.create(RealGrid)
+
+bWidth = 1 * setupFactor
+flags.initDomain(boundaryWidth=bWidth)
+flags.fillGrid()
 
 bWidth = 1
 # fluidVel = 0
@@ -108,7 +131,7 @@ if use_gui:
     gui.show()
     gui.pause()
 # main loop
-for t in range(200):
+for t in range(frames * 2 + 1):  # 200, 200 + frames * 2):
     mantaMsg('\nFrame %i, simulation time %f' % (s.frame, s.timeTotal))
 
     pp.advectInGrid(flags=flags, vel=vel, integrationMode=IntRK4, deleteInObstacle=False)
@@ -137,22 +160,31 @@ for t in range(200):
     if (dim == 3):
         phi.createMesh(mesh)
 
-    #if save_parts:
+    # copy to target
+    if 1:
+        blurSig = float(1. / targetFac) / 3.544908  # 3.544908 = 2 * sqrt( PI )
+        blurRealGrid(density, blurden, blurSig)
+        interpolateGrid(target=density_2, source=blurden)
+
+        blurMacGrid(vel, blurvel, blurSig)
+        interpolateMACGrid(target=vel_2, source=blurvel)
+        vel_2.multConst(vec3(targetFac))
+
+    # if save_parts:
     #    pp.save(saver_paths.getUniFolder() + ('density_low_%04d.uni' % t))
 
     # Questo è il codice per salvare preso dagli altri progetti
-    if save_for_tempogan:
+    if save_for_tempogan and t % 2 == 0:
         simPath = saver_paths.getUniFolder()
-        #Taken from sim_3006
+        # Taken from sim_3006
         frameNr = t / 2
         framedir = "frame_%04d" % frameNr
         # os.mkdir( outputpath + framedir )
-        outputpath=simPath
-        #computeVorticity(vel=vel, vorticity=flags, norm=tstGrid)  # vorticity
-        flags.save('%s/vorticity_low_%04d.uni' % (outputpath, frameNr))
+        outputpath = simPath
+        computeVorticity(vel=vel, vorticity=tmpVec3, norm=tstGrid)  # vorticity
+        tmpVec3.save('%s/vorticity_low_%04d.uni' % (outputpath, frameNr))
         vel.save("%s/velocity_low_%04d.uni" % (outputpath, frameNr))
         density.save("%s/density_low_%04d.uni" % (outputpath, frameNr))
-        density.save("%s/density_high_%04d.uni" % (outputpath, frameNr))
-
+        density_2.save("%s/density_high_%04d.uni" % (outputpath, frameNr))
 
     s.step()
