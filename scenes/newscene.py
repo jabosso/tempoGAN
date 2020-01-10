@@ -1,21 +1,38 @@
 from manta import *
 from scenes_utils import SessionSaver
 import numpy as np
+import argparse
+import sys
+
+parser = argparse.ArgumentParser()
+parser.add_argument("--save-screen", action="store_true", default=False,
+                    help="Save screenshots (default: False)")
+parser.add_argument("--save-data", action="store_true", default=False,
+                    help="Save uni parts when using the script (default: False)")
+parser.add_argument("--show-gui", action="store_true", default=False,
+                    help="Show gui (default: False)")
+parser.add_argument("--number", type=int, default=1,
+                    help="Number of env to run (default: 1)")
+parser.add_argument("--res", type=int, default=64,
+                    help="Resolution to run (default: 64)")
+parser.add_argument("--frames", type=int, default=200,
+                    help="Number of frames to run. Infinite=0 (default: 200)")
+args = parser.parse_args()
 
 saver_paths = SessionSaver("../tensorflow/2ddata_sim/newscene_sim_1000")
-save_parts = False
-save_for_tempogan = True
-use_gui = False
-frames = 200
+save_screen = args.save_screen
+save_for_tempogan = args.save_data
+use_gui = args.show_gui
 
 dim = 3
-res = 64
+res = args.res
 gs = vec3(res, res, res)
 # -------------- Create the solver for the scene ----------------------
 s = Solver(name='main', gridSize=gs, dim=dim)
 s.timestep = 1.0
 
 minParticles = pow(2, int(dim / 2.0))
+print(("Min particles: %i" % minParticles))
 radiusFactor = 0.8
 
 # how much to reduce target sim size
@@ -131,7 +148,7 @@ if use_gui:
     gui.show()
     gui.pause()
 # main loop
-for t in range(frames * 2 + 1):  # 200, 200 + frames * 2):
+for t in range((args.frames * 2 + 1) if args.frames > 0 else sys.maxsize):  # 200, 200 + frames * 2):
     mantaMsg('\nFrame %i, simulation time %f' % (s.frame, s.timeTotal))
 
     pp.advectInGrid(flags=flags, vel=vel, integrationMode=IntRK4, deleteInObstacle=False)
@@ -161,7 +178,7 @@ for t in range(frames * 2 + 1):  # 200, 200 + frames * 2):
         phi.createMesh(mesh)
 
     # copy to target
-    if 1:
+    if save_for_tempogan:
         blurSig = float(1. / targetFac) / 3.544908  # 3.544908 = 2 * sqrt( PI )
         blurRealGrid(density, blurden, blurSig)
         interpolateGrid(target=density_2, source=blurden)
@@ -170,8 +187,11 @@ for t in range(frames * 2 + 1):  # 200, 200 + frames * 2):
         interpolateMACGrid(target=vel_2, source=blurvel)
         vel_2.multConst(vec3(targetFac))
 
-    # if save_parts:
-    #    pp.save(saver_paths.getUniFolder() + ('density_low_%04d.uni' % t))
+    # if 0 and save_screen:
+    #    pp.save(saver_paths.getUniFolder() + ('density_low_%04d.ppm' % t))
+
+    if save_screen and use_gui:
+        gui.screenshot(saver_paths.getScreenFolder() + ('newscene_screen_%04d.png' % t))
 
     # Questo è il codice per salvare preso dagli altri progetti
     if save_for_tempogan and t % 2 == 0:

@@ -1,0 +1,10 @@
+../build/manta flip02_chair.py --res 64 --partic-rad 1.0 --save-parts 
+
+../build/manta newscene.py --show-gui --res 64 --frames 0
+
+../build/manta newscene.py --show-gui --res 256 --frames 0
+
+../build/manta flip02_chair.py --res 64 --partic-rad 1.0 --save-parts
+
+../build/manta flip02_chair.py --res 256 --partic-rad 4.0 --save-parts  --pause-starting
+

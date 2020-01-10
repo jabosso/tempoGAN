@@ -3,6 +3,7 @@
 # 
 from manta import *
 import argparse
+from scenes_utils import SessionSaver
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--ball-speed", type=float, default=1,
@@ -19,6 +20,8 @@ parser.add_argument("--partic-rad", type=float, default=2.0,
                     help="Size of a particle in R+ (default: 2.0)")
 args = parser.parse_args()
 
+saver_paths = SessionSaver("saved_chair/")
+GUI = True
 # solver params
 dim = 3
 res = args.res
@@ -145,7 +148,7 @@ elif setup == 1:
         gui.pause()
 
     # main loop
-    for t in range(250):
+    for t in range(400):
         mantaMsg('\nFrame %i, simulation time %f' % (s.frame, s.timeTotal))
 
         # FLIP
@@ -189,7 +192,7 @@ elif setup == 1:
 
         # generate data for flip03_gen.py surface generation scene
         if args.save_parts:
-            pp.save('flipParts_%04d.uni' % t)
+            pass#pp.save((saver_paths.getUniFolder() + 'flipParts_%04d.uni') % t)
 
-        if 0 and (GUI):
-            gui.screenshot('flip02_%04d.png' % t)
+        if args.save_parts and GUI:
+            gui.screenshot((saver_paths.getScreenFolder() + 'flip_screen_02_%04d.png') % t)

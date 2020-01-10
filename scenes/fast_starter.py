@@ -1,6 +1,23 @@
 import os
+import argparse
 
-experiment_number = 7
+parser = argparse.ArgumentParser()
+parser.add_argument("--num", type=int, default=7,
+                    help="Number of env (default: 7)")
+parser.add_argument("--list", action="store_true", default=False,
+                    help="Show list of fast starting envs")
+args = parser.parse_args()
+experiment_number = args.num
+
+if args.list:
+    print('1: flip02_surface')
+    print('2: turbulence')
+    print('3: apic01_simple')
+    print('4: fire')
+    print('5: flip02_chair')
+    print('6: guiding_2d')
+    print('7: newscene')
+    experiment_number = -1
 
 start_all_defaults = False
 
